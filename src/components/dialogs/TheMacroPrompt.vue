@@ -49,6 +49,7 @@ import MacroPromptFooterButton from '@/components/dialogs/MacroPromptFooterButto
 import MacroPromptText from '@/components/dialogs/MacroPromptText.vue'
 import MacroPromptButton from '@/components/dialogs/MacroPromptButton.vue'
 import MacroPromptButtonGroup from '@/components/dialogs/MacroPromptButtonGroup.vue'
+import { mergeMacroPromptEvents } from '@/components/dialogs/macroPrompt'
 
 @Component({
     components: { MacroPromptButtonGroup, MacroPromptButton, MacroPromptText, MacroPromptFooterButton, Panel },
@@ -115,7 +116,8 @@ export default class TheMacroPrompt extends Mixins(BaseMixin) {
 
         // if we found new prompt events in this chunk, let's append them
         if (promptEvents.length > 0) {
-            this.currentPrompt = [...this.currentPrompt, ...promptEvents]
+            if (promptEvents.some((event) => event.type === 'update')) this.internalCloseCommand = null
+            this.currentPrompt = mergeMacroPromptEvents(this.currentPrompt, promptEvents)
         }
 
         return this.currentPrompt
