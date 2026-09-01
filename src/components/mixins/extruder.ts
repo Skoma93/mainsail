@@ -10,7 +10,7 @@ export default class ExtruderMixin extends Vue {
     }
 
     get activeExtruder(): string {
-        return this.$store.state.printer.toolhead?.extruder
+        return this.$store.getters['printer/getActiveExtruder']
     }
 
     get activeExtruderSettings(): ExtruderConfigSettings | undefined {

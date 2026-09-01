@@ -21,6 +21,7 @@ export interface GuiState {
     control: {
         style: 'bars' | 'circle' | 'cross'
         hideDuringPrint: boolean
+        adaptiveBedStabilization: boolean
         actionButton: null | 'm84' | 'qgl' | 'ztilt'
         enableXYHoming: boolean
         feedrateXY: number

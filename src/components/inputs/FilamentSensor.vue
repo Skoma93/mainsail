@@ -13,12 +13,33 @@
                 </v-subheader>
             </v-col>
         </v-row>
+        <v-card-text v-if="isPat9125" class="py-0 pb-2">
+            <div class="d-flex justify-space-between text-caption">
+                <span>{{ $t('Panels.MiscellaneousPanel.RunoutSensor.MinimumFlow') }}</span>
+                <span>{{ sensitivityValue.toFixed(0) }}%</span>
+            </div>
+            <v-slider
+                v-model="sensitivityValue"
+                :disabled="!enabled"
+                :min="1"
+                :max="100"
+                :step="1"
+                hide-details
+                @change="changeSensitivity" />
+            <div class="text-caption text--secondary">
+                {{ flow_percentage.toFixed(0) }}%
+                {{ $t('Panels.MiscellaneousPanel.RunoutSensor.MeasuredFlow') }}
+                · {{ detection_length.toFixed(1) }} mm
+                {{ $t('Panels.MiscellaneousPanel.RunoutSensor.EvaluationWindow') }}
+            </div>
+        </v-card-text>
     </v-container>
 </template>
 
 <script lang="ts">
 import { convertName } from '@/plugins/helpers'
-import { Component, Mixins, Prop } from 'vue-property-decorator'
+import { Component, Mixins, Prop, Watch } from 'vue-property-decorator'
+import { Debounce } from 'vue-debounce-decorator'
 import BaseMixin from '@/components/mixins/base'
 import { mdiPrinter3dNozzleAlert, mdiToggleSwitch, mdiToggleSwitchOffOutline } from '@mdi/js'
 
@@ -39,6 +60,15 @@ export default class FilamentSensor extends Mixins(BaseMixin) {
     @Prop({ type: Boolean, required: true }) declare readonly enabled: boolean
     @Prop({ type: Boolean, required: true }) declare readonly filament_detected: boolean
     @Prop({ type: Number }) declare readonly filament_diameter: number
+    @Prop({ type: Number, default: 4 }) declare readonly detection_length: number
+    @Prop({ type: Number, default: 70 }) declare readonly minimum_flow: number
+    @Prop({ type: Number, default: 100 }) declare readonly flow_percentage: number
+
+    sensitivityValue = 70
+
+    get isPat9125(): boolean {
+        return this.type === 'pat9125_filament_sensor'
+    }
 
     get statusColor() {
         if (!this.enabled) return 'gray'
@@ -56,6 +86,11 @@ export default class FilamentSensor extends Mixins(BaseMixin) {
         return this.$t('Panels.MiscellaneousPanel.RunoutSensor.Empty')
     }
 
+    @Watch('minimum_flow', { immediate: true })
+    minimumFlowChanged(value: number): void {
+        this.sensitivityValue = value
+    }
+
     changeSensor() {
         const gcodes = ['SET_FILAMENT_SENSOR SENSOR=' + this.name + ' ENABLE=' + (this.enabled ? 0 : 1)]
         if (this.type == 'hall_filament_width_sensor') {
@@ -65,6 +100,13 @@ export default class FilamentSensor extends Mixins(BaseMixin) {
             this.$store.dispatch('server/addEvent', { message: gcode, type: 'command' })
             this.$socket.emit('printer.gcode.script', { script: gcode })
         }
+    }
+
+    @Debounce(300)
+    changeSensitivity(): void {
+        const gcode = `SET_FMS_SENSITIVITY SENSOR=${this.name} FLOW=${this.sensitivityValue.toFixed(0)}`
+        this.$store.dispatch('server/addEvent', { message: gcode, type: 'command' })
+        this.$socket.emit('printer.gcode.script', { script: gcode })
     }
 }
 </script>

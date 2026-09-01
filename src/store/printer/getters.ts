@@ -346,7 +346,12 @@ export const getters: GetterTree<PrinterState, RootState> = {
     },
 
     getFilamentSensors: (state) => {
-        const sensorObjectNames = ['filament_switch_sensor', 'filament_motion_sensor', 'hall_filament_width_sensor']
+        const sensorObjectNames = [
+            'filament_switch_sensor',
+            'filament_motion_sensor',
+            'hall_filament_width_sensor',
+            'pat9125_filament_sensor',
+        ]
         const sensors: PrinterStateFilamentSensors[] = []
 
         for (const [key, value] of Object.entries(state)) {
@@ -359,6 +364,9 @@ export const getters: GetterTree<PrinterState, RootState> = {
                     enabled: value.enabled,
                     filament_detected: value.filament_detected,
                     filament_diameter: value.Diameter,
+                    detection_length: value.detection_length,
+                    minimum_flow: value.minimum_flow,
+                    flow_percentage: value.flow_percentage,
                 })
             }
         }
@@ -541,8 +549,17 @@ export const getters: GetterTree<PrinterState, RootState> = {
         return extruderSteppers
     },
 
-    getExtrudePossible: (state) => {
-        const extruderName = state.toolhead?.extruder ?? 'extruder'
+    getActiveExtruder: (state) => {
+        const activeTool = state.flow_idex_modes?.active_tool
+
+        if (activeTool === 1) return 'extruder1'
+        if (activeTool === 0) return 'extruder'
+
+        return state.toolhead?.extruder ?? 'extruder'
+    },
+
+    getExtrudePossible: (state, getters) => {
+        const extruderName = getters['getActiveExtruder']
 
         return state[extruderName]?.can_extrude ?? false
     },

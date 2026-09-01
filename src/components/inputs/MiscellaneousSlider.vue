@@ -203,6 +203,8 @@ export default class MiscellaneousSlider extends Mixins(BaseMixin) {
         newVal = newVal * this.multi
 
         let gcode = `SET_PIN PIN=${this.name} VALUE=${newVal.toFixed(2)}`
+        if (this.type === 'output_pin' && this.name === 'printer_light')
+            gcode = `SET_PRINTER_LIGHT VALUE=${newVal.toFixed(2)}`
         if (this.type === 'fan') gcode = `M106 S${newVal.toFixed(0)}`
         if (this.type === 'fan_generic') gcode = `SET_FAN_SPEED FAN=${this.name} SPEED=${newVal}`
         if (this.type === 'led')
@@ -226,7 +228,9 @@ export default class MiscellaneousSlider extends Mixins(BaseMixin) {
 
     switchOutputPin(): void {
         const newVal = this.value ? 0 : 1
-        const gcode = `SET_PIN PIN=${this.name} VALUE=${(newVal * this.multi).toFixed(2)}`
+        let gcode = `SET_PIN PIN=${this.name} VALUE=${(newVal * this.multi).toFixed(2)}`
+        if (this.type === 'output_pin' && this.name === 'printer_light')
+            gcode = `SET_PRINTER_LIGHT VALUE=${(newVal * this.multi).toFixed(2)}`
         this.$store.dispatch('server/addEvent', { message: gcode, type: 'command' })
         this.$socket.emit('printer.gcode.script', { script: gcode })
     }

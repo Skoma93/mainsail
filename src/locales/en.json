@@ -193,14 +193,18 @@
     },
     "Dialogs": {
         "StartPrint": {
+            "AdaptiveBedMesh": "Adaptive bed mesh",
+            "AdaptiveTemperaturesRequired": "Adaptive bed mesh requires a first-layer bed temperature in the file metadata.",
             "Afc": {
                 "FilamentTypeMismatch": "Filament type in the G-Code ({file}) does not match the selected filament type ({lane}).",
                 "FilamentWeightNotEnough": "Not enough filament in the selected lane ({lane}). Required: {required}, Available: {available}."
             },
             "DoYouWantToStartFilename": "Do you want to start {filename}?",
             "DoYouWantToStartFilenameFilament": "Do you want to start {filename} with the following filament?",
+            "FirstLayerHeightRequired": "The file must provide a first-layer height for Mirror or Parallel mode.",
             "Headline": "Start Job",
             "Print": "print",
+            "PrintMode": "Print mode",
             "Timelapse": "Timelapse"
         }
     },
@@ -611,6 +615,7 @@
             "Calibrate": "Calibrate",
             "CaptureTD": "Capture TD",
             "Color": "Color",
+            "CustomColor": "Custom color",
             "DebugJson": "Debug JSON",
             "Detected": "Detected",
             "EjectFilament": "Eject Filament",
@@ -720,6 +725,23 @@
             "SwitchToPrinter": "Switch to Printer",
             "WebcamOff": "Off"
         },
+        "FilamentManagerPanel": {
+            "Apply": "Apply",
+            "Bed": "Bed",
+            "BedTemperature": "Bed temperature",
+            "BedUnavailable": "Bed heater unavailable",
+            "Color": "Color",
+            "Headline": "Filament Manager",
+            "HeatBed": "Heat bed",
+            "HeatBoth": "Heat both",
+            "HeatHead": "Heat head",
+            "Material": "Material",
+            "Nozzle": "Nozzle",
+            "NozzleTemperature": "Nozzle temperature",
+            "Save": "Save",
+            "SelectPreset": "Select filament preset",
+            "Tool": "Tool {tool}"
+        },
         "KlippyStatePanel": {
             "CheckKlippyAndUdsAddress": "Please check if the Klipper service is running and klippy_uds_address is correctly configured in the moonraker.conf.",
             "FirmwareRestart": "Firmware Restart",
@@ -766,6 +788,7 @@
             "MoreInformation": "more information"
         },
         "MiscellaneousPanel": {
+            "AdaptiveBedStabilization": "Adaptive bed stabilization",
             "Headline": "Miscellaneous",
             "Light": {
                 "Blue": "blue",
@@ -775,8 +798,13 @@
             },
             "RunoutSensor": {
                 "Detected": "detected",
-                "Empty": "empty"
-            }
+                "Empty": "empty",
+                "EvaluationWindow": "evaluation window",
+                "MeasuredFlow": "measured flow",
+                "MinimumFlow": "Minimum flow"
+            },
+            "Seconds": "{seconds} s",
+            "Skipped": "skipped"
         },
         "MmuPanel": {
             "Active": "Active",
@@ -949,6 +977,26 @@
             },
             "Unknown": "Unknown"
         },
+        "PrinterSoundPanel": {
+            "Delete": "Delete sound",
+            "DeleteFailed": "Could not delete sound",
+            "Events": {
+                "error": "Error",
+                "finished": "Finished",
+                "heated": "Heated up",
+                "warning": "Warning"
+            },
+            "Headline": "Printer sounds",
+            "Preview": "Preview sound",
+            "PreviewFailed": "Sound preview failed",
+            "SaveFailed": "Could not save sound settings",
+            "Sound": "Sound",
+            "Unavailable": "Printer sound service is unavailable",
+            "Upload": "Upload WAV sound",
+            "UploadedSounds": "Uploaded sounds",
+            "UploadFailed": "WAV upload failed",
+            "Volume": "Global volume"
+        },
         "SpoolmanPanel": {
             "ActiveSpool": "Active Spool",
             "ChangeSpool": "Change Spool",
@@ -975,6 +1023,9 @@
             "TooLessFilament": "The current spool may not have enough filament for this print. ({spoolWeight}g of {fileWeight}g)",
             "Weight": "Weight",
             "Yesterday": "Yesterday"
+        },
+        "StatusLedColorsPanel": {
+            "Headline": "Printer status colors"
         },
         "StatusPanel": {
             "CancelPrint": "Cancel print",
@@ -1057,6 +1108,12 @@
             "ALL": "ALL",
             "ControlButtons": "Control buttons",
             "CoordinateFields": "Coordinate fields",
+            "FlowModes": {
+                "BACKUP": "Backup",
+                "MIRROR": "Mirror",
+                "NORMAL": "Normal",
+                "PARALLEL": "Parallel"
+            },
             "Headline": "Toolhead",
             "PleaseConfigureSteps": "Please configure steps",
             "Position": "Position",
@@ -1158,6 +1215,8 @@
             "UpdateButton": "Update filter"
         },
         "ControlTab": {
+            "AdaptiveBedStabilization": "Adaptive mesh bed stabilization",
+            "AdaptiveBedStabilizationDescription": "Wait for the configured bed stabilization time before adaptive probing",
             "Bars": "Bars",
             "Circle": "Circle",
             "Control": "Control",
@@ -1350,7 +1409,17 @@
             "Presets": "Presets",
             "Required": "This field is required.",
             "Start": "Start",
-            "StartDescription": "First LED of this group."
+            "StartDescription": "First LED of this group.",
+            "StatusLedColors": "Printer status LED colors",
+            "StatusLedColorsDescription": "Colors are saved on the printer and applied automatically by state priority.",
+            "StatusLedState": {
+                "error": "Error",
+                "finished": "Finished",
+                "idle": "Idle",
+                "paused": "Paused",
+                "printing": "Printing",
+                "warning": "Warning"
+            }
         },
         "NavigationTab": {
             "Navigation": "Navigation"

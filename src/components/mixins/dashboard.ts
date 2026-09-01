@@ -16,6 +16,8 @@ import {
     mdiWebcam,
     mdiAdjust,
     mdiMulticast,
+    mdiPalette,
+    mdiVolumeHigh,
 } from '@mdi/js'
 import { afcIconLogo } from '@/plugins/afcIcons'
 
@@ -73,6 +75,11 @@ export default class DashboardMixin extends BaseMixin {
                 return mdiEngine
             case 'extruder-control':
                 return mdiPrinter3dNozzle
+            case 'filament-manager':
+            case 'status-led-colors':
+                return mdiPalette
+            case 'printer-sound':
+                return mdiVolumeHigh
             case 'spoolman':
                 return mdiAdjust
             case 'mmu':

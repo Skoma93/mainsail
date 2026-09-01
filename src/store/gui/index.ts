@@ -40,6 +40,7 @@ export const getDefaultState = (): GuiState => {
             style: 'bars',
             actionButton: null,
             hideDuringPrint: false,
+            adaptiveBedStabilization: true,
             enableXYHoming: false,
             feedrateXY: 100,
             stepsXY: [100, 10, 1],
@@ -76,6 +77,8 @@ export const getDefaultState = (): GuiState => {
                 { name: 'macros', visible: true },
                 { name: 'machine-settings', visible: true },
                 { name: 'miscellaneous', visible: true },
+                { name: 'status-led-colors', visible: true },
+                { name: 'printer-sound', visible: true },
                 { name: 'temperature', visible: true },
                 { name: 'miniconsole', visible: false },
             ],
@@ -86,6 +89,8 @@ export const getDefaultState = (): GuiState => {
                 { name: 'macros', visible: true },
                 { name: 'machine-settings', visible: true },
                 { name: 'miscellaneous', visible: true },
+                { name: 'status-led-colors', visible: true },
+                { name: 'printer-sound', visible: true },
             ],
             tabletLayout2: [
                 { name: 'temperature', visible: true },
@@ -98,6 +103,8 @@ export const getDefaultState = (): GuiState => {
                 { name: 'macros', visible: true },
                 { name: 'machine-settings', visible: true },
                 { name: 'miscellaneous', visible: true },
+                { name: 'status-led-colors', visible: true },
+                { name: 'printer-sound', visible: true },
             ],
             desktopLayout2: [
                 { name: 'temperature', visible: true },
@@ -108,6 +115,8 @@ export const getDefaultState = (): GuiState => {
                 { name: 'extruder-control', visible: true },
                 { name: 'macros', visible: true },
                 { name: 'miscellaneous', visible: true },
+                { name: 'status-led-colors', visible: true },
+                { name: 'printer-sound', visible: true },
             ],
             widescreenLayout2: [
                 { name: 'temperature', visible: true },

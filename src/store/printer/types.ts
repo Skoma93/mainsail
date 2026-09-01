@@ -128,6 +128,9 @@ export interface PrinterStateFilamentSensors {
     enabled: boolean
     filament_detected: boolean
     filament_diameter?: number
+    detection_length?: number
+    minimum_flow?: number
+    flow_percentage?: number
 }
 
 export interface PrinterStateBedMesh {

@@ -1,5 +1,3 @@
-<style scoped></style>
-
 <template>
     <panel
         v-if="showMiscellaneousPanel"
@@ -7,6 +5,18 @@
         :title="$t('Panels.MiscellaneousPanel.Headline')"
         :collapsible="true"
         card-class="miscellaneous-panel">
+        <v-container v-if="flowModesAvailable" class="px-0 py-2">
+            <v-subheader class="adaptive-stabilization-subheader">
+                <v-icon small class="mr-2">{{ mdiThermometerLines }}</v-icon>
+                <span>{{ $t('Panels.MiscellaneousPanel.AdaptiveBedStabilization') }}</span>
+                <v-spacer />
+                <small class="mr-3 text--secondary">{{ adaptiveBedStabilizationStatus }}</small>
+                <v-icon @click="adaptiveBedStabilization = !adaptiveBedStabilization">
+                    {{ adaptiveBedStabilization ? mdiToggleSwitch : mdiToggleSwitchOffOutline }}
+                </v-icon>
+            </v-subheader>
+        </v-container>
+        <v-divider v-if="flowModesAvailable && hasMiscellaneousContent" />
         <div v-for="(object, index) of miscellaneous" :key="index">
             <v-divider v-if="index" />
             <miscellaneous-slider
@@ -31,7 +41,10 @@
                 :name="sensor.name"
                 :enabled="sensor.enabled"
                 :filament_detected="sensor.filament_detected"
-                :filament_diameter="sensor.filament_diameter" />
+                :filament_diameter="sensor.filament_diameter"
+                :detection_length="sensor.detection_length"
+                :minimum_flow="sensor.minimum_flow"
+                :flow_percentage="sensor.flow_percentage" />
         </div>
         <div v-for="(sensor, index) of miscellaneousSensors" :key="'miscellaneous_sensor_' + index">
             <v-divider v-if="index || miscellaneous.length || lights.length || filamentSensors.length" />
@@ -60,7 +73,7 @@ import MiscellaneousLight from '@/components/panels/Miscellaneous/MiscellaneousL
 import MiscellaneousSensor from '@/components/panels/Miscellaneous/MiscellaneousSensor.vue'
 import MoonrakerSensor from '@/components/panels/Miscellaneous/MoonrakerSensor.vue'
 import Panel from '@/components/ui/Panel.vue'
-import { mdiDipSwitch } from '@mdi/js'
+import { mdiDipSwitch, mdiThermometerLines, mdiToggleSwitch, mdiToggleSwitchOffOutline } from '@mdi/js'
 import MiscellaneousMixin from '@/components/mixins/miscellaneous'
 @Component({
     components: {
@@ -74,6 +87,27 @@ import MiscellaneousMixin from '@/components/mixins/miscellaneous'
 })
 export default class MiscellaneousPanel extends Mixins(BaseMixin, MiscellaneousMixin) {
     mdiDipSwitch = mdiDipSwitch
+    mdiThermometerLines = mdiThermometerLines
+    mdiToggleSwitch = mdiToggleSwitch
+    mdiToggleSwitchOffOutline = mdiToggleSwitchOffOutline
+
+    get flowModesAvailable(): boolean {
+        return Boolean(this.$store.state.printer?.flow_idex_modes)
+    }
+
+    get adaptiveBedStabilization(): boolean {
+        return this.$store.state.gui.control.adaptiveBedStabilization ?? true
+    }
+
+    set adaptiveBedStabilization(newVal: boolean) {
+        this.$store.dispatch('gui/saveSetting', { name: 'control.adaptiveBedStabilization', value: newVal })
+    }
+
+    get adaptiveBedStabilizationStatus(): string {
+        if (!this.adaptiveBedStabilization) return this.$t('Panels.MiscellaneousPanel.Skipped').toString()
+        const seconds = this.$store.state.printer?.flow_idex_modes?.adaptive_bed_stabilization_time ?? 0
+        return this.$t('Panels.MiscellaneousPanel.Seconds', { seconds }).toString()
+    }
 
     get filamentSensors() {
         return this.$store.getters['printer/getFilamentSensors'] ?? []
@@ -91,10 +125,26 @@ export default class MiscellaneousPanel extends Mixins(BaseMixin, MiscellaneousM
         return this.$store.getters['server/sensor/getSensors'] ?? []
     }
 
+    get hasMiscellaneousContent(): boolean {
+        return Boolean(
+            this.miscellaneous.length ||
+                this.lights.length ||
+                this.filamentSensors.length ||
+                this.miscellaneousSensors.length ||
+                this.moonrakerSensors.length
+        )
+    }
+
     get showMiscellaneousPanel() {
         return (
-            this.klipperReadyForGui && (this.miscellaneous.length || this.filamentSensors.length || this.lights.length)
+            this.klipperReadyForGui && (this.flowModesAvailable || this.hasMiscellaneousContent)
         )
     }
 }
 </script>
+
+<style scoped>
+.adaptive-stabilization-subheader {
+    height: auto;
+}
+</style>

@@ -80,6 +80,25 @@
             </v-menu>
             <extruder-panel-settings />
         </template>
+        <!-- IDEX HEAD SELECTOR -->
+        <v-container v-if="hasDualCarriage" class="pb-0">
+            <v-btn-toggle :value="activeHead" mandatory dense class="d-flex">
+                <v-btn
+                    :value="0"
+                    class="flex-grow-1"
+                    :disabled="headSelectionDisabled"
+                    @click="selectHead(0)">
+                    T0
+                </v-btn>
+                <v-btn
+                    :value="1"
+                    class="flex-grow-1"
+                    :disabled="headSelectionDisabled"
+                    @click="selectHead(1)">
+                    T1
+                </v-btn>
+            </v-btn-toggle>
+        </v-container>
         <!-- TOOL SELECTOR BUTTONS -->
         <extruder-control-panel-tools v-if="showTools && toolchangeMacros.length" />
         <!-- EXTRUSION FACTOR SLIDER -->
@@ -129,6 +148,33 @@ export default class ExtruderControlPanel extends Mixins(BaseMixin, ControlMixin
 
     get showPanel(): boolean {
         return this.klipperReadyForGui && this.extruders.length > 0
+    }
+
+    get hasDualCarriage(): boolean {
+        return Boolean(this.$store.state.printer?.dual_carriage && this.$store.state.printer?.extruder1)
+    }
+
+    get activeHead(): number {
+        return this.activeExtruder === 'extruder1' ? 1 : 0
+    }
+
+    get headSelectionDisabled(): boolean {
+        return (
+            ['printing', 'paused'].includes(this.printer_state) ||
+            Boolean(this.$store.state.printer?.continuous_extrusion?.active)
+        )
+    }
+
+    selectHead(head: number): void {
+        if (head === this.activeHead || this.headSelectionDisabled) return
+        const script = this.$store.state.printer?.flow_idex_modes
+            ? `SET_FLOW_MODE MODE=NORMAL TOOL=${head}`
+            : `SET_DUAL_CARRIAGE CARRIAGE=${head} MODE=PRIMARY\nACTIVATE_EXTRUDER EXTRUDER=${
+                  head === 1 ? 'extruder1' : 'extruder'
+              }`
+
+        this.$store.dispatch('server/addEvent', { message: script, type: 'command' })
+        this.$socket.emit('printer.gcode.script', { script })
     }
 
     get macros() {

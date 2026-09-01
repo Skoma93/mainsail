@@ -67,7 +67,16 @@ export const getters: GetterTree<GuiState, RootState> = {
         // remove extruder panel, if printerExtruderCount < 1
         const printerExtruders = rootGetters['printer/getExtruders']
         if (printerExtruders.length < 1) {
-            allPanels = allPanels.filter((name) => name !== 'extruder-control')
+            allPanels = allPanels.filter((name) => !['extruder-control', 'filament-manager'].includes(name))
+        }
+
+        // remove filament manager if its shared Klipper persistence contract is unavailable
+        if (!rootState.printer?.save_variables || !rootState.printer?.['gcode_macro SET_FILAMENT_PROFILE']) {
+            allPanels = allPanels.filter((name) => name !== 'filament-manager')
+        }
+
+        if (!rootState.printer?.save_variables || !rootState.printer?.['gcode_macro SET_STATUS_LED_COLOR']) {
+            allPanels = allPanels.filter((name) => name !== 'status-led-colors')
         }
 
         // remove temperature panel, if sensors < 1
@@ -130,6 +139,13 @@ export const getters: GetterTree<GuiState, RootState> = {
                         })
                 })
                 panels = panels.concat(missingPanels)
+            }
+
+            // Keep the filament manager directly below the console in every viewport.
+            panels = panels.filter((panel) => panel.name !== 'filament-manager')
+            const miniconsoleIndex = panels.findIndex((panel) => panel.name === 'miniconsole')
+            if (miniconsoleIndex !== -1 && allPossiblePanels.includes('filament-manager')) {
+                panels.splice(miniconsoleIndex + 1, 0, { name: 'filament-manager', visible: true })
             }
 
             if (onlyVisible) {

@@ -24,6 +24,14 @@
                     <v-switch v-model="hideDuringPrint" hide-details class="mt-0" />
                 </settings-row>
                 <v-divider class="my-2" />
+                <settings-row
+                    v-if="$store.state.printer?.flow_idex_modes"
+                    :title="$t('Settings.ControlTab.AdaptiveBedStabilization')"
+                    :sub-title="$t('Settings.ControlTab.AdaptiveBedStabilizationDescription')"
+                    :dynamic-slot-width="true">
+                    <v-switch v-model="adaptiveBedStabilization" hide-details class="mt-0" />
+                </settings-row>
+                <v-divider v-if="$store.state.printer?.flow_idex_modes" class="my-2" />
                 <settings-row :title="$t('Settings.ControlTab.EnableXYHoming')" :dynamic-slot-width="true">
                     <v-switch v-model="enableXYHoming" hide-details class="mt-0" />
                 </settings-row>
@@ -315,6 +323,14 @@ export default class SettingsControlTab extends Mixins(BaseMixin, ControlMixin, 
 
     set hideDuringPrint(newVal) {
         this.$store.dispatch('gui/saveSetting', { name: 'control.hideDuringPrint', value: newVal })
+    }
+
+    get adaptiveBedStabilization(): boolean {
+        return this.$store.state.gui.control.adaptiveBedStabilization ?? true
+    }
+
+    set adaptiveBedStabilization(newVal) {
+        this.$store.dispatch('gui/saveSetting', { name: 'control.adaptiveBedStabilization', value: newVal })
     }
 
     get actionOptions() {

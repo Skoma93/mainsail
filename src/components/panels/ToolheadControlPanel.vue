@@ -84,6 +84,25 @@
             </v-menu>
             <toolhead-panel-settings />
         </template>
+        <!-- IDEX HEAD SELECTOR -->
+        <v-container v-if="hasDualCarriage" class="pb-0">
+            <v-btn-toggle :value="activeHead" mandatory dense class="d-flex">
+                <v-btn
+                    :value="0"
+                    class="flex-grow-1"
+                    :disabled="headSelectionDisabled"
+                    @click="selectHead(0)">
+                    T0
+                </v-btn>
+                <v-btn
+                    :value="1"
+                    class="flex-grow-1"
+                    :disabled="headSelectionDisabled"
+                    @click="selectHead(1)">
+                    T1
+                </v-btn>
+            </v-btn-toggle>
+        </v-container>
         <!-- MOVE TO CONTROL -->
         <move-to-control />
         <!-- AXIS CONTROL -->
@@ -156,6 +175,38 @@ export default class ToolheadControlPanel extends Mixins(BaseMixin, ControlMixin
 
     get speedFactor(): number {
         return this.$store.state.printer?.gcode_move?.speed_factor ?? 1
+    }
+
+    get hasDualCarriage(): boolean {
+        return Boolean(this.$store.state.printer?.dual_carriage && this.$store.state.printer?.extruder1)
+    }
+
+    get flowModes(): Record<string, unknown> | null {
+        return this.$store.state.printer?.flow_idex_modes ?? null
+    }
+
+    get activeHead(): number {
+        const carriages = this.$store.state.printer?.dual_carriage?.carriages
+
+        if (carriages?.stepper_x === 'INACTIVE' && carriages?.dual_carriage !== 'INACTIVE') return 1
+
+        return 0
+    }
+
+    get headSelectionDisabled(): boolean {
+        return ['printing', 'paused'].includes(this.printer_state) || this.$store.state.printer?.continuous_jog?.active
+    }
+
+    selectHead(head: number): void {
+        if (head === this.activeHead || this.headSelectionDisabled) return
+        const script = this.flowModes
+            ? `SET_FLOW_MODE MODE=NORMAL TOOL=${head}`
+            : `SET_DUAL_CARRIAGE CARRIAGE=${head} MODE=PRIMARY\nACTIVATE_EXTRUDER EXTRUDER=${
+                  head === 1 ? 'extruder1' : 'extruder'
+              }`
+
+        this.$store.dispatch('server/addEvent', { message: script, type: 'command' })
+        this.$socket.emit('printer.gcode.script', { script })
     }
 
     get isPrinting() {

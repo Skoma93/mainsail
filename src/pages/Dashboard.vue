@@ -84,6 +84,7 @@ import Component from 'vue-class-component'
 import { Mixins } from 'vue-property-decorator'
 import AfcPanel from '@/components/panels/AfcPanel.vue'
 import ExtruderControlPanel from '@/components/panels/ExtruderControlPanel.vue'
+import FilamentManagerPanel from '@/components/panels/FilamentManagerPanel.vue'
 import DashboardMixin from '@/components/mixins/dashboard'
 import KlippyStatePanel from '@/components/panels/KlippyStatePanel.vue'
 import LedEffectsPanel from '@/components/panels/LedEffectsPanel.vue'
@@ -93,9 +94,11 @@ import MacrosPanel from '@/components/panels/MacrosPanel.vue'
 import MiniconsolePanel from '@/components/panels/MiniconsolePanel.vue'
 import MinSettingsPanel from '@/components/panels/MinSettingsPanel.vue'
 import MiscellaneousPanel from '@/components/panels/MiscellaneousPanel.vue'
+import PrinterSoundPanel from '@/components/panels/PrinterSoundPanel.vue'
 import SpoolmanPanel from '@/components/panels/SpoolmanPanel.vue'
 import MmuPanel from '@/components/panels/MmuPanel.vue'
 import StatusPanel from '@/components/panels/StatusPanel.vue'
+import StatusLedColorsPanel from '@/components/panels/StatusLedColorsPanel.vue'
 import ToolheadControlPanel from '@/components/panels/ToolheadControlPanel.vue'
 import TemperaturePanel from '@/components/panels/TemperaturePanel.vue'
 import WebcamPanel from '@/components/panels/WebcamPanel.vue'
@@ -104,6 +107,7 @@ import WebcamPanel from '@/components/panels/WebcamPanel.vue'
     components: {
         AfcPanel,
         ExtruderControlPanel,
+        FilamentManagerPanel,
         KlippyStatePanel,
         LedEffectsPanel,
         MachineSettingsPanel,
@@ -112,9 +116,11 @@ import WebcamPanel from '@/components/panels/WebcamPanel.vue'
         MiniconsolePanel,
         MinSettingsPanel,
         MiscellaneousPanel,
+        PrinterSoundPanel,
         SpoolmanPanel,
         MmuPanel,
         StatusPanel,
+        StatusLedColorsPanel,
         ToolheadControlPanel,
         TemperaturePanel,
         WebcamPanel,

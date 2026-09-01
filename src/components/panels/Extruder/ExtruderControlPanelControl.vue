@@ -29,6 +29,15 @@
                                 @click="setFeedamount({ value })">
                                 {{ value }}
                             </v-btn>
+                            <v-btn
+                                v-if="existsContinuousExtrusion"
+                                :color="continuousExtrusion ? 'primary' : undefined"
+                                :disabled="printerIsPrintingOnly"
+                                dense
+                                class="_btn-qs _btn-continuous flex-grow-1 px-0"
+                                @click="continuousExtrusion = true">
+                                ∞
+                            </v-btn>
                         </v-item-group>
                     </v-col>
                     <v-col>
@@ -66,10 +75,11 @@
                             <template #activator="{ on }">
                                 <div class="mb-4" v-on="on">
                                     <v-btn
-                                        :loading="loadings.includes('btnRetract')"
+                                        :loading="continuousDirection === -1 || loadings.includes('btnRetract')"
                                         :disabled="!extrudePossible || tooLargeExtrusion || printerIsPrintingOnly"
                                         small
                                         class="_btn-extruder-cmd"
+                                        @pointerdown="startContinuousExtrusion($event, -1)"
                                         @click="sendRetract()">
                                         <v-icon small class="mr-1">{{ mdiArrowUpBold }}</v-icon>
                                         {{ $t('Panels.ExtruderControlPanel.Retract') }}
@@ -93,10 +103,11 @@
                             <template #activator="{ on }">
                                 <div v-on="on">
                                     <v-btn
-                                        :loading="loadings.includes('btnExtrude')"
+                                        :loading="continuousDirection === 1 || loadings.includes('btnExtrude')"
                                         :disabled="!extrudePossible || tooLargeExtrusion || printerIsPrintingOnly"
                                         small
                                         class="_btn-extruder-cmd"
+                                        @pointerdown="startContinuousExtrusion($event, 1)"
                                         @click="sendExtrude()">
                                         <v-icon small class="mr-1">{{ mdiArrowDownBold }}</v-icon>
                                         {{ $t('Panels.ExtruderControlPanel.Extrude') }}
@@ -127,12 +138,13 @@
                                     <template #activator="{ on }">
                                         <div class="pt-1 pb-2 px-3" v-on="on">
                                             <v-btn
-                                                :loading="loadings.includes('btnRetract')"
+                                                :loading="continuousDirection === -1 || loadings.includes('btnRetract')"
                                                 :disabled="
                                                     !extrudePossible || tooLargeExtrusion || printerIsPrintingOnly
                                                 "
                                                 small
                                                 class="_btn-extruder-cmd"
+                                                @pointerdown="startContinuousExtrusion($event, -1)"
                                                 @click="sendRetract()">
                                                 <v-icon small class="mr-1">{{ mdiArrowUpBold }}</v-icon>
                                                 {{ $t('Panels.ExtruderControlPanel.Retract') }}
@@ -157,12 +169,13 @@
                                     <template #activator="{ on }">
                                         <div class="pt-1 pb-2 px-3" v-on="on">
                                             <v-btn
-                                                :loading="loadings.includes('btnExtrude')"
+                                                :loading="continuousDirection === 1 || loadings.includes('btnExtrude')"
                                                 :disabled="
                                                     !extrudePossible || tooLargeExtrusion || printerIsPrintingOnly
                                                 "
                                                 small
                                                 class="_btn-extruder-cmd"
+                                                @pointerdown="startContinuousExtrusion($event, 1)"
                                                 @click="sendExtrude()">
                                                 <v-icon small class="mr-1">{{ mdiArrowDownBold }}</v-icon>
                                                 {{ $t('Panels.ExtruderControlPanel.Extrude') }}
@@ -214,6 +227,25 @@ export default class ExtruderControlPanel extends Mixins(BaseMixin, ExtruderMixi
     mdiArrowDownBold = mdiArrowDownBold
     mdiArrowUpBold = mdiArrowUpBold
     mdiPrinter3dNozzle = mdiPrinter3dNozzle
+    continuousDirection = 0
+    continuousExtrusion = false
+    continuousClient = ''
+    continuousTimer: number | null = null
+
+    mounted(): void {
+        window.addEventListener('pointerup', this.stopContinuousExtrusion)
+        window.addEventListener('pointercancel', this.stopContinuousExtrusion)
+        window.addEventListener('blur', this.stopContinuousExtrusion)
+        document.addEventListener('visibilitychange', this.onVisibilityChange)
+    }
+
+    beforeDestroy(): void {
+        this.stopContinuousExtrusion()
+        window.removeEventListener('pointerup', this.stopContinuousExtrusion)
+        window.removeEventListener('pointercancel', this.stopContinuousExtrusion)
+        window.removeEventListener('blur', this.stopContinuousExtrusion)
+        document.removeEventListener('visibilitychange', this.onVisibilityChange)
+    }
 
     get feedamounts(): number[] {
         return this.$store.state.gui.control.extruder?.feedamounts ?? []
@@ -236,6 +268,7 @@ export default class ExtruderControlPanel extends Mixins(BaseMixin, ExtruderMixi
     }
 
     setFeedamount(params: { value: number }): void {
+        this.continuousExtrusion = false
         this.$store.dispatch('gui/saveSetting', { name: 'control.extruder.feedamount', value: params.value })
     }
 
@@ -257,6 +290,12 @@ export default class ExtruderControlPanel extends Mixins(BaseMixin, ExtruderMixi
         return '_CLIENT_LINEAR_MOVE' in macros
     }
 
+    get existsContinuousExtrusion(): boolean {
+        const commands = this.$store.state.printer?.gcode?.commands ?? {}
+
+        return 'MANUAL_EXTRUDE_START' in commands
+    }
+
     @Watch('maxExtrudeOnlyDistance', { immediate: true })
     onMaxExtrudeOnlyDistanceChange(): void {
         /**
@@ -269,11 +308,53 @@ export default class ExtruderControlPanel extends Mixins(BaseMixin, ExtruderMixi
         }
     }
 
+    onVisibilityChange(): void {
+        if (document.hidden) this.stopContinuousExtrusion()
+    }
+
+    startContinuousExtrusion(event: PointerEvent, direction: number): void {
+        if (
+            !this.existsContinuousExtrusion ||
+            !this.continuousExtrusion ||
+            this.continuousDirection !== 0 ||
+            event.button !== 0
+        )
+            return
+
+        event.preventDefault()
+        const button = event.currentTarget as HTMLElement
+        button.setPointerCapture?.(event.pointerId)
+        this.continuousClient = `mainsail_${Date.now()}_${Math.random().toString(36).slice(2)}`
+        this.continuousDirection = direction
+        this.sendContinuousCommand(
+            `MANUAL_EXTRUDE_START CLIENT=${this.continuousClient} DIRECTION=${direction} SPEED=${this.feedrate}`
+        )
+        this.continuousTimer = window.setInterval(() => {
+            this.$socket.emit('printer.continuous_extrusion.keepalive', { client: this.continuousClient })
+        }, 50)
+    }
+
+    stopContinuousExtrusion(): void {
+        if (this.continuousDirection === 0) return
+        if (this.continuousTimer !== null) window.clearInterval(this.continuousTimer)
+        this.continuousTimer = null
+        const client = this.continuousClient
+        this.continuousClient = ''
+        this.continuousDirection = 0
+        this.sendContinuousCommand(`MANUAL_EXTRUDE_STOP CLIENT=${client}`)
+    }
+
+    sendContinuousCommand(gcode: string): void {
+        this.$socket.emit('printer.gcode.script', { script: gcode })
+    }
+
     sendRetract(): void {
+        if (this.existsContinuousExtrusion && this.continuousExtrusion) return
         this.sendCommand(this.feedamount * -1, 'btnRetract')
     }
 
     sendExtrude(): void {
+        if (this.existsContinuousExtrusion && this.continuousExtrusion) return
         this.sendCommand(this.feedamount, 'btnExtrude')
     }
 
@@ -336,6 +417,12 @@ html.theme--light ._btn-group .v-btn {
 ._btn-qs {
     font-size: 0.8rem !important;
     max-height: 24px;
+}
+
+._btn-continuous {
+    font-size: 1.25rem !important;
+    font-weight: 500;
+    line-height: 1;
 }
 
 ._btn-extruder-cmd {

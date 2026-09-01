@@ -1,6 +1,7 @@
 <template>
     <v-card-text>
         <h3 class="text-h5 mb-3">{{ $t('Settings.MiscellaneousTab.Miscellaneous') }}</h3>
+        <settings-status-led-colors v-if="statusLedAvailable" />
         <template v-if="filteredLights.length">
             <template v-for="(light, index) in filteredLights">
                 <v-divider v-if="index" :key="'divider_' + index" class="my-2" />
@@ -20,11 +21,16 @@ import { Component, Mixins } from 'vue-property-decorator'
 import BaseMixin from '../../mixins/base'
 import MiscellaneousMixin from '@/components/mixins/miscellaneous'
 import SettingsMiscellaneousTabListLight from '@/components/settings/Miscellaneous/SettingsMiscellaneousTabListLight.vue'
+import SettingsStatusLedColors from '@/components/settings/Miscellaneous/SettingsStatusLedColors.vue'
 
 @Component({
-    components: { SettingsMiscellaneousTabListLight },
+    components: { SettingsMiscellaneousTabListLight, SettingsStatusLedColors },
 })
 export default class SettingsMiscellaneousTabList extends Mixins(BaseMixin, MiscellaneousMixin) {
+    get statusLedAvailable() {
+        return 'gcode_macro SET_STATUS_LED_COLOR' in (this.$store.state.printer ?? {})
+    }
+
     get settings() {
         return this.$store.state.printer.configfile?.settings ?? {}
     }

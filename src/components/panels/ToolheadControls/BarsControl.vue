@@ -58,6 +58,14 @@
             <v-col class="text-center">
                 <v-item-group class="_btn-group row no-gutters">
                     <v-btn
+                        :disabled="!xAxisHomed || ['printing'].includes(printer_state)"
+                        class="btnMinWidthAuto btnGroup"
+                        @pointerdown="startContinuousJog($event, 'X-', feedrateXY)"
+                        @pointerup="stopContinuousJog"
+                        @pointercancel="stopContinuousJog">
+                        <span class="body-2">-</span>
+                    </v-btn>
+                    <v-btn
                         v-for="steps of stepsXYsorted"
                         :key="'x-' + steps"
                         :disabled="['printing'].includes(printer_state)"
@@ -81,6 +89,14 @@
                         @click="doSendMove('X+' + steps, feedrateXY)">
                         <span class="body-2">+{{ steps }}</span>
                     </v-btn>
+                    <v-btn
+                        :disabled="!xAxisHomed || ['printing'].includes(printer_state)"
+                        class="btnMinWidthAuto btnGroup"
+                        @pointerdown="startContinuousJog($event, 'X+', feedrateXY)"
+                        @pointerup="stopContinuousJog"
+                        @pointercancel="stopContinuousJog">
+                        <span class="body-2">+</span>
+                    </v-btn>
                 </v-item-group>
             </v-col>
         </v-row>
@@ -88,6 +104,14 @@
         <v-row dense>
             <v-col class="text-center">
                 <v-item-group class="_btn-group row no-gutters">
+                    <v-btn
+                        :disabled="!yAxisHomed || ['printing'].includes(printer_state)"
+                        class="btnMinWidthAuto btnGroup"
+                        @pointerdown="startContinuousJog($event, 'Y-', feedrateXY)"
+                        @pointerup="stopContinuousJog"
+                        @pointercancel="stopContinuousJog">
+                        <span class="body-2">-</span>
+                    </v-btn>
                     <v-btn
                         v-for="steps of stepsXYsorted"
                         :key="'y-' + steps"
@@ -112,6 +136,14 @@
                         @click="doSendMove('Y+' + steps, feedrateXY)">
                         <span class="body-2">+{{ steps }}</span>
                     </v-btn>
+                    <v-btn
+                        :disabled="!yAxisHomed || ['printing'].includes(printer_state)"
+                        class="btnMinWidthAuto btnGroup"
+                        @pointerdown="startContinuousJog($event, 'Y+', feedrateXY)"
+                        @pointerup="stopContinuousJog"
+                        @pointercancel="stopContinuousJog">
+                        <span class="body-2">+</span>
+                    </v-btn>
                 </v-item-group>
             </v-col>
         </v-row>
@@ -119,6 +151,14 @@
         <v-row dense>
             <v-col class="text-center">
                 <v-item-group class="_btn-group row no-gutters">
+                    <v-btn
+                        :disabled="!zAxisHomed || ['printing'].includes(printer_state)"
+                        class="btnMinWidthAuto btnGroup"
+                        @pointerdown="startContinuousJog($event, 'Z-', feedrateZ)"
+                        @pointerup="stopContinuousJog"
+                        @pointercancel="stopContinuousJog">
+                        <span class="body-2">-</span>
+                    </v-btn>
                     <v-btn
                         v-for="steps of stepsZsorted"
                         :key="'z-' + steps"
@@ -142,6 +182,14 @@
                         class="btnMinWidthAuto col btnGroup"
                         @click="doSendMove('Z+' + steps, feedrateZ)">
                         <span class="body-2">+{{ steps }}</span>
+                    </v-btn>
+                    <v-btn
+                        :disabled="!zAxisHomed || ['printing'].includes(printer_state)"
+                        class="btnMinWidthAuto btnGroup"
+                        @pointerdown="startContinuousJog($event, 'Z+', feedrateZ)"
+                        @pointerup="stopContinuousJog"
+                        @pointercancel="stopContinuousJog">
+                        <span class="body-2">+</span>
                     </v-btn>
                 </v-item-group>
             </v-col>

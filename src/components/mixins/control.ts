@@ -3,6 +3,9 @@ import Component from 'vue-class-component'
 
 @Component
 export default class ControlMixin extends Vue {
+    continuousJogClient = ''
+    continuousJogTimer: number | null = null
+
     get absolute_coordinates() {
         return this.$store.state.printer?.gcode_move?.absolute_coordinates ?? true
     }
@@ -134,6 +137,46 @@ export default class ControlMixin extends Vue {
         const macros = this.$store.state.printer?.gcode?.commands ?? {}
 
         return '_CLIENT_LINEAR_MOVE' in macros
+    }
+
+    get existsContinuousJog(): boolean {
+        const commands = this.$store.state.printer?.gcode?.commands ?? {}
+
+        return 'MANUAL_JOG_START' in commands
+    }
+
+    beforeDestroy(): void {
+        this.stopContinuousJog()
+    }
+
+    startContinuousJog(event: PointerEvent, move: string, feedrate: number): void {
+        if (!this.existsContinuousJog || this.continuousJogClient || event.button !== 0) return
+        const match = /^([XYZ])([+-])/.exec(move)
+        if (!match) return
+
+        event.preventDefault()
+        const button = event.currentTarget as HTMLElement
+        button.setPointerCapture?.(event.pointerId)
+        const axis = match[1]
+        const direction = match[2] === '+' ? 1 : -1
+        this.continuousJogClient = `mainsail_jog_${Date.now()}_${Math.random().toString(36).slice(2)}`
+        this.$socket.emit('printer.continuous_jog.start', {
+            client: this.continuousJogClient,
+            [axis.toLowerCase()]: direction,
+            speed: feedrate,
+        })
+        this.continuousJogTimer = window.setInterval(() => {
+            this.$socket.emit('printer.continuous_jog.keepalive', { client: this.continuousJogClient })
+        }, 25)
+    }
+
+    stopContinuousJog(): void {
+        if (!this.continuousJogClient) return
+        if (this.continuousJogTimer !== null) window.clearInterval(this.continuousJogTimer)
+        this.continuousJogTimer = null
+        const client = this.continuousJogClient
+        this.continuousJogClient = ''
+        this.$socket.emit('printer.continuous_jog.stop', { client })
     }
 
     doHome() {

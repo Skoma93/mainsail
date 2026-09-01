@@ -88,3 +88,74 @@ describe('printer/getEstimatedTimeETAFormat', () => {
         expect(runGetter(eta, true)).toBe('01:00 AM +1')
     })
 })
+
+describe('printer/getFilamentSensors', () => {
+    it('includes PAT9125 sensors as independently switchable filament sensors', () => {
+        const state = {
+            'pat9125_filament_sensor h1_filament': {
+                enabled: false,
+                filament_detected: false,
+            },
+            'pat9125_filament_sensor h0_filament': {
+                enabled: true,
+                filament_detected: true,
+                detection_length: 4,
+                minimum_flow: 70,
+                flow_percentage: 95,
+            },
+        } as unknown as PrinterState
+
+        expect(getters.getFilamentSensors(state, {}, {} as RootState, {})).toEqual([
+            {
+                type: 'pat9125_filament_sensor',
+                name: 'h0_filament',
+                enabled: true,
+                filament_detected: true,
+                filament_diameter: undefined,
+                detection_length: 4,
+                minimum_flow: 70,
+                flow_percentage: 95,
+            },
+            {
+                type: 'pat9125_filament_sensor',
+                name: 'h1_filament',
+                enabled: false,
+                filament_detected: false,
+                filament_diameter: undefined,
+                detection_length: undefined,
+                minimum_flow: undefined,
+                flow_percentage: undefined,
+            },
+        ])
+    })
+})
+
+describe('printer active extruder', () => {
+    it('uses the FLOW active tool when it is available', () => {
+        const state = {
+            flow_idex_modes: { active_tool: 1 },
+            toolhead: { extruder: 'extruder' },
+        } as unknown as PrinterState
+
+        expect(getters.getActiveExtruder(state, {}, {} as RootState, {})).toBe('extruder1')
+    })
+
+    it('falls back to the standard toolhead extruder', () => {
+        const state = {
+            toolhead: { extruder: 'extruder1' },
+        } as unknown as PrinterState
+
+        expect(getters.getActiveExtruder(state, {}, {} as RootState, {})).toBe('extruder1')
+    })
+
+    it('checks can_extrude on the resolved active extruder', () => {
+        const state = {
+            extruder: { can_extrude: false },
+            extruder1: { can_extrude: true },
+        } as unknown as PrinterState
+
+        expect(
+            getters.getExtrudePossible(state, { getActiveExtruder: 'extruder1' }, {} as RootState, {})
+        ).toBe(true)
+    })
+})
